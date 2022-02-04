@@ -13,7 +13,7 @@ RUN apt-get update && \
     nuget update -self
 RUN git clone --recurse-submodules -j8 --depth 1 --branch ${TSHOCK_VERSION} https://github.com/Pryaxis/TShock.git /app
 WORKDIR /app
-RUN nuget restore ./TerrariaServerAPI/ && \
+RUN nuget restore ./TerrariaServerAPI/ -DisableParallelProcessing && \
     msbuild ./TerrariaServerAPI/TShock.4.OTAPI.sln /p:Configuration=$BUILD_MODE && \
     cd ./TerrariaServerAPI/TShock.Modifications.Bootstrapper/bin/$BUILD_MODE/ && \
     mono TShock.Modifications.Bootstrapper.exe -in=OTAPI.dll \
@@ -22,7 +22,7 @@ RUN nuget restore ./TerrariaServerAPI/ && \
     cd ./../../../../ && \
     msbuild ./TerrariaServerAPI/TerrariaServerAPI/TerrariaServerAPI.csproj \
       /p:Configuration=$BUILD_MODE && \
-    nuget restore && \
+    nuget restore -DisableParallelProcessing && \
     xbuild ./TShock.sln /p:Configuration=$BUILD_MODE
 
 # Build Terracord
@@ -33,14 +33,14 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y \
     git && \
-    nuget update -self
+    nuget update -self 
 RUN git clone --recurse-submodules -j8 --depth 1 --branch master https://github.com/FragLand/terracord.git /app && \
     cd /app
 WORKDIR /app
 RUN mkdir -p /app/lib
 COPY --from=tshock /app/TShockAPI/bin/${BUILD_MODE}/ /app/lib/
-RUN nuget restore && \
-    msbuild /p:Configuration=${BUILD_MODE},TargetFrameworks=net46 Terracord/Terracord.csproj
+RUN nuget restore -DisableParallelProcessing && \
+    msbuild /p:Configuration=${BUILD_MODE},TargetFrameworks=net461 Terracord/Terracord.csproj
 
 FROM mono:6.8
 LABEL maintainer="Didstopia <support@didstopia.com>"
@@ -68,8 +68,8 @@ VOLUME ["/tshock/worlds", "/tshock/logs", "/plugins"]
 RUN mkdir -p /tshock/ServerPlugins/ && \
     mkdir -p /tshock/tshock/Terracord
 COPY entrypoint.sh /tshock/entrypoint.sh
-COPY --from=terracord /app/Terracord/bin/${BUILD_MODE}/net46/ /tshock/
-COPY --from=terracord /app/Terracord/bin/${BUILD_MODE}/net46/TShockAPI.dll /tshock/ServerPlugins/
+COPY --from=terracord /app/Terracord/bin/${BUILD_MODE}/net461/ /tshock/
+COPY --from=terracord /app/Terracord/bin/${BUILD_MODE}/net461/TShockAPI.dll /tshock/ServerPlugins/
 COPY --from=terracord /app/terracord.xml /tshock/tshock/Terracord/
 RUN chmod +x /tshock/entrypoint.sh && \
     chmod +x /tshock/TerrariaServer.exe && \
