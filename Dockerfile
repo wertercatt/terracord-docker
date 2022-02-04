@@ -4,7 +4,7 @@
 # Build TShock
 FROM mono:6.8 AS tshock
 LABEL maintainer="Didstopia <support@didstopia.com>"
-ENV TSHOCK_VERSION=v4.4.0-pre13
+ENV TSHOCK_VERSION=general-devel
 ENV BUILD_MODE=Release
 RUN apt-get update && \
     apt-get upgrade -y && \
@@ -35,8 +35,7 @@ RUN apt-get update && \
     git && \
     nuget update -self
 RUN git clone --recurse-submodules -j8 --depth 1 --branch master https://github.com/FragLand/terracord.git /app && \
-    cd /app && \
-    git checkout f034948040889602095053b8e401d8b4efef3c83
+    cd /app
 WORKDIR /app
 RUN mkdir -p /app/lib
 COPY --from=tshock /app/TShockAPI/bin/${BUILD_MODE}/ /app/lib/
@@ -50,10 +49,10 @@ ENV CONFIG_PATH=/tshock/worlds
 ENV LOG_PATH=/tshock/logs
 ENV WORLD_FILENAME=""
 ENV TERRACORD_ENABLED=false
-ENV TERRACORD_SILENCE_BROADCASTS=true
+ENV TERRACORD_SILENCE_BROADCASTS=false
 ENV TERRACORD_SILENCE_CHAT=false
 ENV TERRACORD_SILENCE_SAVES=true
-ENV TERRACORD_ANNOUNCE_RECONNECT=false
+ENV TERRACORD_ANNOUNCE_RECONNECT=true
 ENV TERRACORD_EMOJI_JOIN=":green_circle:"
 ENV TERRACORD_EMOJI_LEAVE=":red_circle:"
 EXPOSE 7777 7878
